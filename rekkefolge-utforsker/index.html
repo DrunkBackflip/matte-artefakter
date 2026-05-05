@@ -1,0 +1,1833 @@
+<!DOCTYPE html>
+<html lang="nb">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Spiller rekkefølgen noen rolle?</title>
+<!--
+  Rekkefølge-utforsker
+  CC BY-SA 4.0 · Vetle Vikanes · 2026
+  Tilhører prosjektet "Interaktiv artifacts".
+  Pedagogisk grunnlag: ideer/spesifikasjoner/rekkefolge-utforsker.md
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Nunito:wght@500;600;700;800;900&family=Space+Grotesk:wght@400;500;600;700&display=swap">
+<style>
+:root {
+  --bg: #f4ecdc;
+  --paper: #faf4e6;
+  --ink: #181410;
+  --ink-2: rgba(24, 20, 16, 0.62);
+  --ink-3: rgba(24, 20, 16, 0.42);
+  --rule: rgba(24, 20, 16, 0.14);
+
+  --coral: #e64a3b;
+  --coral-soft: #fad9d3;
+  --steel: #355c7d;
+  --steel-soft: #d2dde6;
+
+  --ok: #36713e;
+  --ok-soft: #d5e6d8;
+  --warn: #b1382d;
+  --warn-soft: #f6dad5;
+
+  --border-w: 2px;
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-card: 18px;
+  --radius-wrap: 28px;
+  --radius-pill: 999px;
+
+  --shadow-lg: 7px 7px 0 var(--ink);
+  --shadow-md: 4px 4px 0 var(--ink);
+  --shadow-sm: 3px 3px 0 var(--ink);
+  --shadow-cta: 4px 4px 0 var(--coral);
+
+  --font-head: 'Nunito', system-ui, sans-serif;
+  --font-body: 'Space Grotesk', system-ui, sans-serif;
+
+  --pad-x: 36px;
+  --pad-y: 36px;
+  --block-pad: 36px;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font-body);
+  color: var(--ink);
+  font-size: 15px;
+  line-height: 1.55;
+}
+
+body {
+  background: var(--bg);
+  background-image: radial-gradient(circle at 1px 1px, rgba(24,20,16,0.05) 1px, transparent 0);
+  background-size: 22px 22px;
+  min-height: 100vh;
+  padding: var(--pad-y) var(--pad-x);
+}
+
+.wrap {
+  max-width: 1080px;
+  margin: 0 auto;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-wrap);
+  box-shadow: var(--shadow-lg);
+  padding: 36px 36px 28px;
+}
+
+/* ---- Header ---- */
+header.top {
+  border-bottom: var(--border-w) solid var(--ink);
+  padding-bottom: 22px;
+  margin-bottom: 28px;
+}
+
+h1 {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 44px;
+  line-height: 1.05;
+  letter-spacing: -0.02em;
+  margin: 0 0 10px 0;
+}
+
+.subtitle {
+  color: var(--ink-2);
+  font-size: 16px;
+  margin: 0;
+  max-width: 720px;
+}
+
+.label {
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+}
+
+/* ---- Faser ---- */
+.phase { display: none; }
+.phase.active { display: block; }
+
+/* ---- Fase 1 — intro ---- */
+.intro-card {
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 36px;
+  margin: 16px 0 24px;
+}
+
+.intro-card p {
+  font-size: 18px;
+  line-height: 1.6;
+  margin: 0 0 14px 0;
+}
+
+.intro-card p:last-of-type {
+  margin-bottom: 22px;
+}
+
+.illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  padding: 24px 0 8px;
+}
+
+.illustration .pill {
+  font-family: var(--font-head);
+  font-weight: 800;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-pill);
+  padding: 8px 16px;
+  font-size: 16px;
+}
+
+.illustration .arrow {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--ink-2);
+}
+
+/* ---- Knapper ---- */
+.btn {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 15px;
+  background: var(--paper);
+  color: var(--ink);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-pill);
+  padding: 12px 22px;
+  cursor: pointer;
+  box-shadow: var(--shadow-md);
+  transition: transform 0.08s ease, box-shadow 0.08s ease;
+}
+.btn:hover { transform: translate(-1px, -1px); box-shadow: 5px 5px 0 var(--ink); }
+.btn:active { transform: translate(2px, 2px); box-shadow: 2px 2px 0 var(--ink); }
+
+.btn.cta {
+  background: var(--ink);
+  color: var(--paper);
+  box-shadow: var(--shadow-cta);
+}
+.btn.cta:hover { box-shadow: 5px 5px 0 var(--coral); }
+.btn.cta:active { box-shadow: 2px 2px 0 var(--coral); }
+
+.btn.ghost {
+  background: transparent;
+  box-shadow: none;
+  border-color: var(--ink-2);
+  color: var(--ink-2);
+}
+.btn.ghost:hover { box-shadow: 3px 3px 0 var(--ink-2); transform: translate(-1px, -1px); }
+
+/* ---- Fase 2 — utforskning ---- */
+.params {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 18px 24px;
+  margin-bottom: 22px;
+}
+
+.param-pill {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 18px;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-pill);
+  padding: 6px 18px;
+  font-feature-settings: "tnum";
+}
+
+.params .label {
+  margin-right: 4px;
+}
+
+.section-block {
+  margin: 26px 0;
+}
+
+.section-instruction {
+  font-size: 15px;
+  margin: 0 0 14px 0;
+  color: var(--ink);
+}
+
+/* ringer */
+.ring-menu {
+  display: flex;
+  gap: 14px;
+  flex-wrap: wrap;
+  margin: 14px 0 6px;
+}
+
+.ring {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 28px;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  border: var(--border-w) solid var(--ink);
+  background: var(--paper);
+  cursor: pointer;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.08s ease, box-shadow 0.08s ease, opacity 0.2s ease;
+  font-feature-settings: "tnum";
+}
+.ring:hover { transform: translate(-1px, -1px); box-shadow: 4px 4px 0 var(--ink); }
+.ring.active {
+  background: var(--ink);
+  color: var(--paper);
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0 var(--ink);
+}
+.ring.done {
+  opacity: 0.45;
+  background: var(--paper);
+}
+.ring.done::after {
+  content: "✓";
+  position: absolute;
+  font-size: 14px;
+  color: var(--ok);
+  font-weight: 900;
+}
+.ring { position: relative; }
+
+/* arbeidsflate */
+.workspace {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 22px;
+  margin-top: 18px;
+}
+@media (max-width: 880px) {
+  .workspace { grid-template-columns: 1fr; }
+}
+
+.work-card {
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 22px;
+}
+
+.work-card h3 {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 19px;
+  margin: 0 0 14px 0;
+}
+
+/* diagram */
+.lane {
+  margin: 14px 0 18px;
+}
+.lane-label {
+  font-family: var(--font-head);
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: var(--radius-pill);
+  border: var(--border-w) solid var(--ink);
+}
+.lane.a .lane-label { background: var(--coral-soft); }
+.lane.b .lane-label { background: var(--steel-soft); }
+
+.lane-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  font-family: var(--font-head);
+  font-feature-settings: "tnum";
+}
+
+.box {
+  width: 56px;
+  height: 56px;
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-sm);
+  background: var(--paper);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 900;
+  font-size: 22px;
+  color: var(--ink);
+  position: relative;
+}
+.box.start {
+  background: var(--ink);
+  color: var(--paper);
+}
+.box.empty {
+  color: var(--ink-3);
+}
+.box.active {
+  box-shadow: 0 0 0 3px var(--coral);
+}
+.box.filled-a { background: var(--coral-soft); }
+.box.filled-b { background: var(--steel-soft); }
+
+.op {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 18px;
+  color: var(--ink-2);
+  padding: 0 4px;
+}
+
+.arrow-r {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 16px;
+  color: var(--ink-3);
+}
+
+/* predict-input */
+.predict-row {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.predict-row label {
+  font-size: 14px;
+  color: var(--ink);
+}
+.predict-input {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 18px;
+  width: 80px;
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 6px 10px;
+  text-align: center;
+  background: var(--paper);
+  font-feature-settings: "tnum";
+}
+.predict-input:focus { outline: 3px solid var(--coral); outline-offset: 1px; }
+
+.feedback {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-md);
+  font-size: 14px;
+  display: none;
+}
+.feedback.show { display: block; }
+.feedback.ok { background: var(--ok-soft); }
+.feedback.warn { background: var(--warn-soft); }
+
+/* tabell */
+.table-wrap {
+  overflow-x: auto;
+}
+table.results {
+  width: 100%;
+  border-collapse: separate;
+  border-spacing: 0;
+  font-feature-settings: "tnum";
+}
+table.results th,
+table.results td {
+  padding: 10px 12px;
+  text-align: center;
+  border-bottom: 1px solid var(--rule);
+  font-family: var(--font-head);
+  font-weight: 700;
+  font-size: 16px;
+}
+table.results th {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--ink-2);
+  border-bottom: var(--border-w) solid var(--ink);
+}
+table.results th.col-a { background: var(--coral-soft); }
+table.results th.col-b { background: var(--steel-soft); }
+table.results th.col-d {
+  background: #fff3c2;
+  border-left: var(--border-w) solid var(--ink);
+}
+table.results td.col-d {
+  border-left: var(--border-w) solid var(--ink);
+  background: rgba(255, 243, 194, 0.45);
+}
+table.results td.placeholder { color: var(--ink-3); }
+
+table.results .diff-input {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 16px;
+  width: 60px;
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-sm);
+  padding: 4px 6px;
+  text-align: center;
+  background: var(--paper);
+}
+
+.diff-revealed {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--ink-2);
+  display: none;
+}
+.diff-revealed.show { display: block; }
+
+/* hypotese-felt */
+.hypothesis {
+  margin-top: 22px;
+  padding: 22px;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  display: none;
+}
+.hypothesis.show { display: block; }
+.hypothesis textarea {
+  width: 100%;
+  min-height: 90px;
+  font-family: var(--font-body);
+  font-size: 15px;
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  resize: vertical;
+  background: var(--paper);
+}
+.hypothesis textarea:focus { outline: 3px solid var(--coral); outline-offset: 1px; }
+
+.next-row {
+  margin-top: 22px;
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+/* Fase 3 — konsolidering */
+.consolidate-card {
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 32px;
+  margin-bottom: 22px;
+}
+.consolidate-card h2 {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 24px;
+  margin: 0 0 14px 0;
+}
+.consolidate-card p {
+  font-size: 16px;
+  line-height: 1.6;
+  margin: 0 0 12px 0;
+}
+.consolidate-card .pattern-box {
+  margin-top: 16px;
+  padding: 16px;
+  background: var(--bg);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-md);
+  font-family: var(--font-head);
+  font-feature-settings: "tnum";
+}
+.consolidate-card .pattern-box div {
+  margin: 4px 0;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+/* Fase 4 — lekestue */
+.sandbox-controls {
+  display: flex;
+  gap: 18px;
+  flex-wrap: wrap;
+  align-items: center;
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 22px 24px;
+  margin-bottom: 22px;
+}
+.sandbox-controls .ctrl {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.sandbox-controls select {
+  font-family: var(--font-head);
+  font-weight: 800;
+  font-size: 16px;
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-pill);
+  padding: 6px 14px;
+  background: var(--paper);
+  cursor: pointer;
+}
+.sandbox-prediction {
+  margin-top: 6px;
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+
+/* Formel-skjerm */
+.formula-card {
+  background: var(--paper);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-card);
+  box-shadow: var(--shadow-md);
+  padding: 32px;
+}
+.formula-card .formel {
+  font-family: var(--font-head);
+  font-weight: 900;
+  font-size: 28px;
+  text-align: center;
+  margin: 18px 0;
+  padding: 18px;
+  background: var(--bg);
+  border: var(--border-w) solid var(--ink);
+  border-radius: var(--radius-md);
+  font-feature-settings: "tnum";
+}
+
+/* Phase nav */
+.phase-nav {
+  margin-top: 22px;
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* Footer */
+footer.bottom {
+  margin-top: 32px;
+  padding-top: 18px;
+  border-top: var(--border-w) solid var(--ink);
+  display: flex;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 12px;
+  font-size: 12px;
+  color: var(--ink-2);
+}
+footer.bottom .privacy { max-width: 540px; }
+footer.bottom .meta { font-family: var(--font-head); font-weight: 700; }
+footer.bottom .meta .sep { color: var(--ink-3); margin: 0 6px; }
+
+.savestate-pill {
+  font-family: var(--font-head);
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--ink-3);
+  padding: 4px 10px;
+  border: 1px solid var(--rule);
+  border-radius: var(--radius-pill);
+  display: inline-block;
+}
+
+/* Hjelpe-modifikatorer */
+.hidden { display: none !important; }
+.center { text-align: center; }
+
+/* Animasjon */
+@keyframes pop-in {
+  0% { transform: scale(0.7); opacity: 0; }
+  60% { transform: scale(1.08); opacity: 1; }
+  100% { transform: scale(1); }
+}
+.box.animate { animation: pop-in 350ms cubic-bezier(0.2, 0.9, 0.3, 1.2); }
+
+</style>
+</head>
+<body>
+
+<main class="wrap">
+
+<header class="top">
+  <h1>Spiller rekkefølgen noen rolle?</h1>
+  <p class="subtitle">Tipp først, sjekk etterpå — vi skal finne ut om rekkefølgen på regning gir samme svar.</p>
+</header>
+
+<!-- ============================================ -->
+<!-- FASE 1 — INTRO -->
+<!-- ============================================ -->
+<section class="phase phase-intro active" id="phase-intro">
+  <div class="intro-card">
+    <p>Tenk deg at du har et tall. Du kan gjøre to ting med det: <strong>legge til 3</strong>, og <strong>gange med 2</strong>.</p>
+    <p>Spiller det noen rolle hvilken rekkefølge du gjør dem i?</p>
+    <div class="illustration" aria-hidden="true">
+      <span class="pill">tall</span>
+      <span class="arrow">→</span>
+      <span class="pill" style="background: var(--coral-soft)">+ 3</span>
+      <span class="arrow">→</span>
+      <span class="pill" style="background: var(--coral-soft)">× 2</span>
+      <span class="arrow">eller</span>
+      <span class="pill" style="background: var(--steel-soft)">× 2</span>
+      <span class="arrow">→</span>
+      <span class="pill" style="background: var(--steel-soft)">+ 3</span>
+    </div>
+    <p style="margin-top: 14px;">Vi skal finne ut.</p>
+  </div>
+  <div class="phase-nav">
+    <span></span>
+    <button class="btn cta" id="btn-to-explore">Start utforskning →</button>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FASE 2 — UTFORSKNING (runde 1) -->
+<!-- ============================================ -->
+<section class="phase phase-explore" id="phase-explore">
+
+  <div class="params">
+    <span class="label">Reglene i denne runden:</span>
+    <span class="param-pill" id="param-add">+ 3</span>
+    <span class="param-pill" id="param-mul">× 2</span>
+  </div>
+
+  <div class="section-block">
+    <p class="section-instruction"><strong>Velg en startverdi.</strong> Trykk på en av ringene under.</p>
+    <div class="ring-menu" id="ring-menu" role="group" aria-label="Velg startverdi"></div>
+  </div>
+
+  <div class="workspace" id="workspace" style="display:none;">
+    <div class="work-card" id="diagram-card">
+      <h3 id="diagram-heading">Regn med startverdi</h3>
+
+      <div class="lane a">
+        <span class="lane-label" style="background: var(--coral-soft);">Vei 1 — først +, så ×</span>
+        <div class="lane-row" id="lane-a"></div>
+      </div>
+
+      <div class="lane b">
+        <span class="lane-label" style="background: var(--steel-soft);">Vei 2 — først ×, så +</span>
+        <div class="lane-row" id="lane-b"></div>
+      </div>
+
+      <div class="predict-row" id="predict-row" style="display:none;">
+        <label for="predict-input" id="predict-label">Hva tror du blir tallet her?</label>
+        <input id="predict-input" class="predict-input" type="text" inputmode="numeric" autocomplete="off">
+        <button class="btn" id="btn-predict-submit">Sjekk</button>
+      </div>
+
+      <div class="feedback" id="predict-feedback"></div>
+
+      <div class="next-row" id="ring-done-row" style="display:none;">
+        <button class="btn ghost" id="btn-ring-done">Ferdig med denne — velg ny startverdi →</button>
+      </div>
+    </div>
+
+    <div class="work-card" id="table-card">
+      <h3>Hva har vi funnet ut så langt?</h3>
+      <p class="section-instruction" style="color: var(--ink-2);">Skriv inn forskjellen for hver rad du har fylt. Du må regne den ut selv.</p>
+      <div class="table-wrap">
+        <table class="results" id="results-table">
+          <thead>
+            <tr>
+              <th>Startverdi</th>
+              <th class="col-a">Vei 1<br><span style="font-weight:700; color: var(--ink-2);">+ 3, så × 2</span></th>
+              <th class="col-b">Vei 2<br><span style="font-weight:700; color: var(--ink-2);">× 2, så + 3</span></th>
+              <th class="col-d hidden" id="diff-col-header">Forskjell</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody"></tbody>
+        </table>
+      </div>
+      <div class="diff-revealed" id="diff-revealed-msg">
+        En ny kolonne er åpnet: <strong>forskjellen</strong> mellom Vei 1 og Vei 2.
+        Skriv inn forskjellen for radene du har fylt — også de over.
+      </div>
+    </div>
+  </div>
+
+  <div class="hypothesis" id="hypothesis-block">
+    <h3 style="font-family: var(--font-head); font-weight:800; font-size:19px; margin: 0 0 10px 0;">Hva legger du merke til i tabellen?</h3>
+    <p style="margin: 0 0 12px 0; color: var(--ink-2);">Skriv ned det du ser. Det er ingen riktig eller gal observasjon her — bare det du har lagt merke til.</p>
+    <textarea id="hypothesis-input" placeholder="Skriv her ..."></textarea>
+    <div class="next-row">
+      <button class="btn cta" id="btn-to-consolidate">Vi går videre →</button>
+    </div>
+  </div>
+
+</section>
+
+<!-- ============================================ -->
+<!-- FASE 3 — KONSOLIDERING -->
+<!-- ============================================ -->
+<section class="phase phase-consolidate" id="phase-consolidate">
+  <div class="consolidate-card">
+    <h2>Det du oppdaget</h2>
+    <p>I denne runden var <strong>forskjellen alltid 3</strong>. Det er ikke tilfeldig.</p>
+    <p>Når vi ganger med 2, blir alt vi har dobbelt så mye. Hvis vi legger til 3 <em>før</em> vi ganger, blir den 3-eren også doblet — den blir 6. Hvis vi legger til 3 <em>etter</em>, forblir den 3.</p>
+    <p>Forskjellen mellom 6 og 3 er 3. Derfor er forskjellen <strong>alltid 3</strong>, uansett startverdi.</p>
+  </div>
+
+  <div class="consolidate-card">
+    <h2>Ny runde — andre regler</h2>
+    <p>Nå har vi nye tall: <strong>tillegg = 5</strong>, <strong>gange = 2</strong>.</p>
+    <p><strong>Hva tror du blir forskjellen i denne runden?</strong></p>
+    <div class="predict-row">
+      <label for="round2-predict">Forskjellen blir:</label>
+      <input id="round2-predict" class="predict-input" type="text" inputmode="numeric" autocomplete="off">
+      <button class="btn" id="btn-round2-predict">Lagre tippet</button>
+    </div>
+    <div class="feedback" id="round2-feedback"></div>
+    <div class="next-row" style="margin-top: 18px;">
+      <button class="btn cta" id="btn-to-round2">Start ny runde →</button>
+    </div>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FASE 3.5 — RUNDE 2 (kortere) -->
+<!-- ============================================ -->
+<section class="phase phase-round2" id="phase-round2">
+  <div class="params">
+    <span class="label">Reglene i denne runden:</span>
+    <span class="param-pill" id="param-add-2">+ 5</span>
+    <span class="param-pill" id="param-mul-2">× 2</span>
+  </div>
+
+  <div class="section-block">
+    <p class="section-instruction"><strong>Velg en startverdi.</strong> Trykk på en ring.</p>
+    <div class="ring-menu" id="ring-menu-2" role="group" aria-label="Velg startverdi runde 2"></div>
+  </div>
+
+  <div class="workspace" id="workspace-2" style="display:none;">
+    <div class="work-card">
+      <h3 id="diagram-heading-2">Regn med startverdi</h3>
+      <div class="lane a">
+        <span class="lane-label" style="background: var(--coral-soft);">Vei 1 — først +, så ×</span>
+        <div class="lane-row" id="lane-a-2"></div>
+      </div>
+      <div class="lane b">
+        <span class="lane-label" style="background: var(--steel-soft);">Vei 2 — først ×, så +</span>
+        <div class="lane-row" id="lane-b-2"></div>
+      </div>
+
+      <div class="predict-row" id="predict-row-2" style="display:none;">
+        <label for="predict-input-2" id="predict-label-2">Hva tror du blir tallet her?</label>
+        <input id="predict-input-2" class="predict-input" type="text" inputmode="numeric" autocomplete="off">
+        <button class="btn" id="btn-predict-submit-2">Sjekk</button>
+      </div>
+      <div class="feedback" id="predict-feedback-2"></div>
+      <div class="next-row" id="ring-done-row-2" style="display:none;">
+        <button class="btn ghost" id="btn-ring-done-2">Ferdig med denne — velg ny →</button>
+      </div>
+    </div>
+
+    <div class="work-card">
+      <h3>Hva har vi funnet ut?</h3>
+      <p class="section-instruction" style="color: var(--ink-2);">Skriv inn forskjellen for hver rad.</p>
+      <div class="table-wrap">
+        <table class="results">
+          <thead>
+            <tr>
+              <th>Startverdi</th>
+              <th class="col-a">Vei 1<br><span style="font-weight:700; color: var(--ink-2);">+ 5, så × 2</span></th>
+              <th class="col-b">Vei 2<br><span style="font-weight:700; color: var(--ink-2);">× 2, så + 5</span></th>
+              <th class="col-d">Forskjell</th>
+            </tr>
+          </thead>
+          <tbody id="results-tbody-2"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="next-row" id="round2-next" style="display:none; margin-top: 22px;">
+    <button class="btn cta" id="btn-to-pattern">Se mønsteret →</button>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FASE 3.6 — MØNSTER -->
+<!-- ============================================ -->
+<section class="phase phase-pattern" id="phase-pattern">
+  <div class="consolidate-card">
+    <h2>Mønsteret står frem</h2>
+    <p>Når vi sammenligner det vi har funnet ut:</p>
+    <div class="pattern-box">
+      <div>Tillegg = <strong>3</strong>, gange = <strong>2</strong> &nbsp;→&nbsp; forskjell = <strong>3</strong></div>
+      <div>Tillegg = <strong>5</strong>, gange = <strong>2</strong> &nbsp;→&nbsp; forskjell = <strong>5</strong></div>
+      <div>Tillegg = <strong>2</strong>, gange = <strong>3</strong> &nbsp;→&nbsp; forskjell = <strong>4</strong></div>
+    </div>
+    <p style="margin-top: 16px;">Forskjellen kommer ikke fra startverdien. Den kommer fra <strong>reglene</strong>. Det er en skjult struktur i hvordan + og × samarbeider.</p>
+  </div>
+
+  <div class="phase-nav">
+    <button class="btn ghost" id="btn-back-to-explore">← Tilbake til runde 2</button>
+    <button class="btn cta" id="btn-to-sandbox">Vil du prøve med dine egne tall? →</button>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FASE 4 — LEKESTUE -->
+<!-- ============================================ -->
+<section class="phase phase-sandbox" id="phase-sandbox">
+  <div class="consolidate-card" style="margin-bottom: 18px;">
+    <h2>Velg dine egne tall</h2>
+    <p>Tipp først hva forskjellen blir. Deretter prøv med en startverdi for å sjekke.</p>
+  </div>
+
+  <div class="sandbox-controls">
+    <div class="ctrl">
+      <span class="label">Tillegg</span>
+      <select id="sb-add">
+        <option value="1">+ 1</option>
+        <option value="2">+ 2</option>
+        <option value="3">+ 3</option>
+        <option value="4" selected>+ 4</option>
+        <option value="5">+ 5</option>
+      </select>
+    </div>
+    <div class="ctrl">
+      <span class="label">Gange</span>
+      <select id="sb-mul">
+        <option value="2">× 2</option>
+        <option value="3" selected>× 3</option>
+        <option value="4">× 4</option>
+      </select>
+    </div>
+    <div class="sandbox-prediction">
+      <label for="sb-predict" style="font-family: var(--font-head); font-weight: 800;">Tipp forskjellen:</label>
+      <input id="sb-predict" class="predict-input" type="text" inputmode="numeric" autocomplete="off">
+      <button class="btn" id="btn-sb-check">Sjekk</button>
+    </div>
+  </div>
+
+  <div class="feedback" id="sb-feedback"></div>
+
+  <div class="section-block">
+    <p class="section-instruction"><strong>Velg startverdi for å se utregningen:</strong></p>
+    <div class="ring-menu" id="sb-rings"></div>
+  </div>
+
+  <div class="work-card" id="sb-workspace" style="display:none;">
+    <h3 id="sb-heading">Regn med startverdi</h3>
+    <div class="lane a">
+      <span class="lane-label" style="background: var(--coral-soft);">Vei 1 — først +, så ×</span>
+      <div class="lane-row" id="sb-lane-a"></div>
+    </div>
+    <div class="lane b">
+      <span class="lane-label" style="background: var(--steel-soft);">Vei 2 — først ×, så +</span>
+      <div class="lane-row" id="sb-lane-b"></div>
+    </div>
+    <div class="feedback show ok" id="sb-result" style="margin-top: 16px;"></div>
+  </div>
+
+  <div class="phase-nav">
+    <button class="btn ghost" id="btn-back-from-sandbox">← Tilbake</button>
+    <button class="btn cta" id="btn-to-formula">Se det med bokstaver →</button>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FASE 5 — FORMEL (valgfri) -->
+<!-- ============================================ -->
+<section class="phase phase-formula" id="phase-formula">
+  <div class="formula-card">
+    <h2 style="font-family: var(--font-head); font-weight: 900; font-size: 26px; margin: 0 0 14px 0;">Det vi har funnet, med bokstaver</h2>
+    <p>Hvis du legger til <strong>x</strong> og deretter ganger med <strong>y</strong> — eller ganger med <strong>y</strong> først og legger til <strong>x</strong> — så blir forskjellen alltid:</p>
+    <div class="formel">forskjell = x · (y − 1)</div>
+    <p><strong>Eksempel:</strong> x = 3, y = 2.<br>
+      Forskjell = 3 · (2 − 1) = 3 · 1 = <strong>3</strong>. Det stemmer med tabellen din.</p>
+    <p><strong>Et annet eksempel:</strong> x = 5, y = 2.<br>
+      Forskjell = 5 · (2 − 1) = 5 · 1 = <strong>5</strong>.</p>
+    <p style="margin-top: 18px; color: var(--ink-2);">Bokstavene <strong>x</strong> og <strong>y</strong> er bare navn på tallene vi velger. Hva forskjellen blir — det er <em>ikke</em> en tilfeldighet.</p>
+  </div>
+
+  <div class="phase-nav">
+    <button class="btn ghost" id="btn-back-from-formula">← Tilbake til lekestue</button>
+    <button class="btn ghost" id="btn-restart">Start på nytt</button>
+  </div>
+</section>
+
+<!-- ============================================ -->
+<!-- FOOTER -->
+<!-- ============================================ -->
+<footer class="bottom">
+  <div class="privacy">
+    <span class="savestate-pill" id="save-pill">Lagret lokalt</span>
+    Denne siden samler ikke inn data om deg. All fremgang lagres lokalt i din nettleser.
+  </div>
+  <div class="meta">
+    Rekkefølge-utforsker <span class="sep">·</span> CC BY-SA 4.0 <span class="sep">·</span> Vetle Vikanes <span class="sep">·</span> 2026
+  </div>
+</footer>
+
+</main>
+
+<script>
+'use strict';
+
+/* ------------------------------------------------------------------ */
+/*  STATE                                                              */
+/* ------------------------------------------------------------------ */
+
+const STORAGE_KEY = 'rekkefolge-utforsker.v1';
+
+const ROUND1_PARAMS = { add: 3, mul: 2 };
+const ROUND1_RINGS = [1, 2, 3, 5, 10];
+const ROUND2_PARAMS = { add: 5, mul: 2 };
+const ROUND2_RINGS = [1, 4, 7];
+
+const initialState = {
+  phase: 'intro',
+  round1: {
+    params: ROUND1_PARAMS,
+    rings: ROUND1_RINGS,
+    triedRings: [],
+    activeRing: null,
+    poeStep: 0,        // 0..3 = mellomsvar; 4 = endelig svar A; 5 = endelig svar B; 6 = ferdig
+    predictions: {},   // {ringValue: {step0: ..., step1: ..., ...}}
+    table: [],         // [{start, vei1, vei2, forskjell|null}]
+    diffRevealed: false,
+    hypothesis: ''
+  },
+  round2: {
+    params: ROUND2_PARAMS,
+    rings: ROUND2_RINGS,
+    triedRings: [],
+    activeRing: null,
+    poeStep: 0,
+    predictions: {},
+    table: [],
+    forskjellTipp: null,
+    forskjellTippLagret: false
+  },
+  sandbox: {
+    add: 4, mul: 3,
+    forskjellTipp: null,
+    activeStart: null
+  }
+};
+
+let state = loadState() || cloneInitial();
+
+function cloneInitial() { return JSON.parse(JSON.stringify(initialState)); }
+
+function loadState() {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed && parsed.phase) return parsed;
+  } catch (e) {}
+  return null;
+}
+
+let saveTimer = null;
+function saveState() {
+  if (saveTimer) clearTimeout(saveTimer);
+  saveTimer = setTimeout(() => {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); }
+    catch (e) {}
+    flashSavePill();
+  }, 200);
+}
+
+function flashSavePill() {
+  const el = document.getElementById('save-pill');
+  if (!el) return;
+  el.style.color = 'var(--ok)';
+  el.style.borderColor = 'var(--ok)';
+  setTimeout(() => {
+    el.style.color = '';
+    el.style.borderColor = '';
+  }, 600);
+}
+
+/* ------------------------------------------------------------------ */
+/*  UTILS                                                              */
+/* ------------------------------------------------------------------ */
+
+function fmt(n) {
+  if (Number.isInteger(n)) return String(n);
+  return String(n).replace('.', ',');
+}
+
+function parseInput(value) {
+  if (value === null || value === undefined) return NaN;
+  const s = String(value).trim().replace(',', '.');
+  if (s === '') return NaN;
+  return Number(s);
+}
+
+function compute(start, add, mul) {
+  return {
+    vei1: (start + add) * mul,        // first +, then *
+    vei1_step1: start + add,
+    vei2: start * mul + add,           // first *, then +
+    vei2_step1: start * mul,
+    forskjell: ((start + add) * mul) - (start * mul + add)
+  };
+}
+
+/* ------------------------------------------------------------------ */
+/*  PHASE SWITCHING                                                    */
+/* ------------------------------------------------------------------ */
+
+function showPhase(name) {
+  state.phase = name;
+  document.querySelectorAll('.phase').forEach(p => p.classList.remove('active'));
+  const map = {
+    'intro': 'phase-intro',
+    'explore': 'phase-explore',
+    'consolidate': 'phase-consolidate',
+    'round2': 'phase-round2',
+    'pattern': 'phase-pattern',
+    'sandbox': 'phase-sandbox',
+    'formula': 'phase-formula'
+  };
+  const id = map[name] || 'phase-intro';
+  const el = document.getElementById(id);
+  if (el) el.classList.add('active');
+  saveState();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+/* ------------------------------------------------------------------ */
+/*  RUNDE 1 — RING-MENU + DIAGRAM + TABLE                              */
+/* ------------------------------------------------------------------ */
+
+function renderRingMenu() {
+  const menu = document.getElementById('ring-menu');
+  menu.innerHTML = '';
+  state.round1.rings.forEach(val => {
+    const btn = document.createElement('button');
+    btn.className = 'ring';
+    btn.dataset.value = val;
+    btn.textContent = val;
+    btn.setAttribute('aria-label', 'Velg startverdi ' + val);
+    if (state.round1.triedRings.includes(val)) {
+      btn.classList.add('done');
+      btn.disabled = true;
+    }
+    if (state.round1.activeRing === val) btn.classList.add('active');
+    btn.addEventListener('click', () => selectRing1(val));
+    menu.appendChild(btn);
+  });
+}
+
+function selectRing1(val) {
+  if (state.round1.triedRings.includes(val)) return;
+  state.round1.activeRing = val;
+  state.round1.poeStep = 0;
+  state.round1.predictions[val] = {};
+  document.getElementById('workspace').style.display = 'grid';
+  document.getElementById('diagram-heading').textContent = 'Regn med startverdi ' + val;
+  renderRingMenu();
+  renderDiagram1();
+  renderTable1();
+  saveState();
+}
+
+function buildLaneRow(start, add, mul, route, knownSteps) {
+  // route: 'a' = +så×, 'b' = ×så+
+  // knownSteps: { step1Computed: bool, step2Computed: bool }
+  const row = document.createElement('div');
+  row.className = 'lane-row';
+
+  const startBox = document.createElement('div');
+  startBox.className = 'box start';
+  startBox.textContent = start;
+  row.appendChild(startBox);
+
+  const addOp = (txt) => {
+    const o = document.createElement('span');
+    o.className = 'op';
+    o.textContent = txt;
+    row.appendChild(o);
+  };
+  const addArrow = () => {
+    const a = document.createElement('span');
+    a.className = 'arrow-r';
+    a.textContent = '→';
+    row.appendChild(a);
+  };
+
+  if (route === 'a') {
+    addArrow();
+    addOp('+ ' + add);
+    addArrow();
+    const b1 = document.createElement('div');
+    b1.className = 'box ' + (knownSteps.step1 ? 'filled-a' : 'empty');
+    b1.dataset.role = 'a-step1';
+    b1.textContent = knownSteps.step1 ? (start + add) : '?';
+    if (knownSteps.step1Active) b1.classList.add('active');
+    row.appendChild(b1);
+    addArrow();
+    addOp('× ' + mul);
+    addArrow();
+    const b2 = document.createElement('div');
+    b2.className = 'box ' + (knownSteps.step2 ? 'filled-a' : 'empty');
+    b2.dataset.role = 'a-step2';
+    b2.textContent = knownSteps.step2 ? ((start + add) * mul) : '?';
+    if (knownSteps.step2Active) b2.classList.add('active');
+    row.appendChild(b2);
+  } else {
+    addArrow();
+    addOp('× ' + mul);
+    addArrow();
+    const b1 = document.createElement('div');
+    b1.className = 'box ' + (knownSteps.step1 ? 'filled-b' : 'empty');
+    b1.dataset.role = 'b-step1';
+    b1.textContent = knownSteps.step1 ? (start * mul) : '?';
+    if (knownSteps.step1Active) b1.classList.add('active');
+    row.appendChild(b1);
+    addArrow();
+    addOp('+ ' + add);
+    addArrow();
+    const b2 = document.createElement('div');
+    b2.className = 'box ' + (knownSteps.step2 ? 'filled-b' : 'empty');
+    b2.dataset.role = 'b-step2';
+    b2.textContent = knownSteps.step2 ? (start * mul + add) : '?';
+    if (knownSteps.step2Active) b2.classList.add('active');
+    row.appendChild(b2);
+  }
+
+  return row;
+}
+
+function renderDiagram1() {
+  const r = state.round1;
+  if (r.activeRing === null) return;
+  const start = r.activeRing;
+  const { add, mul } = r.params;
+
+  // poeStep mapping:
+  //  0 = predicting a-step1
+  //  1 = predicting a-step2
+  //  2 = predicting b-step1
+  //  3 = predicting b-step2
+  //  4 = entering final answers (both vei1 + vei2)
+  //  5 = done
+  const step = r.poeStep;
+  const aRevealed = {
+    step1: step >= 1,
+    step2: step >= 2,
+    step1Active: step === 0,
+    step2Active: step === 1
+  };
+  const bRevealed = {
+    step1: step >= 3,
+    step2: step >= 4,
+    step1Active: step === 2,
+    step2Active: step === 3
+  };
+
+  const laneA = document.getElementById('lane-a');
+  const laneB = document.getElementById('lane-b');
+  laneA.innerHTML = '';
+  laneB.innerHTML = '';
+  laneA.appendChild(buildLaneRow(start, add, mul, 'a', aRevealed));
+  laneB.appendChild(buildLaneRow(start, add, mul, 'b', bRevealed));
+
+  // predict-row
+  const predictRow = document.getElementById('predict-row');
+  const predictInput = document.getElementById('predict-input');
+  const predictLabel = document.getElementById('predict-label');
+  const predictFeedback = document.getElementById('predict-feedback');
+  const ringDoneRow = document.getElementById('ring-done-row');
+
+  predictFeedback.classList.remove('show', 'ok', 'warn');
+  predictFeedback.textContent = '';
+
+  if (step <= 3) {
+    predictRow.style.display = 'flex';
+    predictInput.value = '';
+    predictInput.focus();
+    predictLabel.textContent = 'Hva tror du blir tallet i den aktive boksen?';
+    ringDoneRow.style.display = 'none';
+  } else if (step === 4) {
+    // final answers — use predict-row but with two inputs
+    predictRow.style.display = 'flex';
+    predictInput.value = '';
+    predictInput.focus();
+    predictLabel.textContent = 'Hva blir endelig svar i Vei 1 (først +, så ×)?';
+    ringDoneRow.style.display = 'none';
+  } else if (step === 5) {
+    predictRow.style.display = 'flex';
+    predictInput.value = '';
+    predictInput.focus();
+    predictLabel.textContent = 'Hva blir endelig svar i Vei 2 (først ×, så +)?';
+    ringDoneRow.style.display = 'none';
+  } else {
+    predictRow.style.display = 'none';
+    ringDoneRow.style.display = 'flex';
+  }
+}
+
+document.getElementById('btn-predict-submit').addEventListener('click', () => handlePredict1());
+document.getElementById('predict-input').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handlePredict1();
+});
+
+function handlePredict1() {
+  const r = state.round1;
+  const start = r.activeRing;
+  const { add, mul } = r.params;
+  const c = compute(start, add, mul);
+  const input = document.getElementById('predict-input');
+  const fb = document.getElementById('predict-feedback');
+  const guess = parseInput(input.value);
+
+  if (Number.isNaN(guess)) {
+    fb.textContent = 'Skriv inn et tall først.';
+    fb.className = 'feedback show warn';
+    return;
+  }
+
+  let truth, label;
+  if (r.poeStep === 0) { truth = c.vei1_step1; label = 'tallet etter + ' + add; }
+  else if (r.poeStep === 1) { truth = c.vei1; label = 'tallet etter × ' + mul; }
+  else if (r.poeStep === 2) { truth = c.vei2_step1; label = 'tallet etter × ' + mul; }
+  else if (r.poeStep === 3) { truth = c.vei2; label = 'tallet etter + ' + add; }
+  else if (r.poeStep === 4) { truth = c.vei1; label = 'svaret i Vei 1'; }
+  else if (r.poeStep === 5) { truth = c.vei2; label = 'svaret i Vei 2'; }
+
+  if (guess === truth) {
+    fb.className = 'feedback show ok';
+    fb.textContent = 'Riktig! ' + buildExplanation1(r.poeStep, start, add, mul);
+  } else {
+    fb.className = 'feedback show warn';
+    fb.textContent = 'Du tippet ' + fmt(guess) + '. Riktig svar er ' + fmt(truth) + '. ' + buildExplanation1(r.poeStep, start, add, mul);
+  }
+
+  // record
+  r.predictions[start] = r.predictions[start] || {};
+  r.predictions[start]['step' + r.poeStep] = guess;
+
+  // advance step
+  setTimeout(() => {
+    r.poeStep += 1;
+    if (r.poeStep === 6) {
+      // ring done — record into table
+      r.table.push({
+        start: start,
+        vei1: c.vei1,
+        vei2: c.vei2,
+        forskjell: null
+      });
+      r.triedRings.push(start);
+      r.activeRing = null;
+      maybeRevealDiff();
+      renderRingMenu();
+      renderDiagram1();
+      renderTable1();
+      maybeShowHypothesis();
+      saveState();
+    } else {
+      renderDiagram1();
+      saveState();
+    }
+  }, 1100);
+}
+
+function buildExplanation1(step, start, add, mul) {
+  switch (step) {
+    case 0: return start + ' + ' + add + ' = ' + (start + add) + '.';
+    case 1: return (start + add) + ' × ' + mul + ' = ' + ((start + add) * mul) + '.';
+    case 2: return start + ' × ' + mul + ' = ' + (start * mul) + '.';
+    case 3: return (start * mul) + ' + ' + add + ' = ' + (start * mul + add) + '.';
+    case 4: return 'Vei 1 hele veien: (' + start + ' + ' + add + ') × ' + mul + ' = ' + ((start + add) * mul) + '.';
+    case 5: return 'Vei 2 hele veien: ' + start + ' × ' + mul + ' + ' + add + ' = ' + (start * mul + add) + '.';
+    default: return '';
+  }
+}
+
+document.getElementById('btn-ring-done').addEventListener('click', () => {
+  state.round1.activeRing = null;
+  document.getElementById('workspace').style.display = 'none';
+  renderRingMenu();
+  renderTable1();
+  maybeShowHypothesis();
+  saveState();
+});
+
+function maybeRevealDiff() {
+  const r = state.round1;
+  if (!r.diffRevealed && r.table.length >= 3) {
+    r.diffRevealed = true;
+  }
+}
+
+function renderTable1() {
+  const r = state.round1;
+  const tbody = document.getElementById('results-tbody');
+  const diffHeader = document.getElementById('diff-col-header');
+  const diffMsg = document.getElementById('diff-revealed-msg');
+
+  if (r.diffRevealed) {
+    diffHeader.classList.remove('hidden');
+    diffMsg.classList.add('show');
+  } else {
+    diffHeader.classList.add('hidden');
+    diffMsg.classList.remove('show');
+  }
+
+  tbody.innerHTML = '';
+  if (r.table.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = r.diffRevealed ? 4 : 3;
+    td.className = 'placeholder';
+    td.textContent = 'Ingen rader ennå — velg en startverdi for å begynne.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+
+  r.table.forEach((row, idx) => {
+    const tr = document.createElement('tr');
+
+    const td0 = document.createElement('td');
+    td0.textContent = row.start;
+    tr.appendChild(td0);
+
+    const td1 = document.createElement('td');
+    td1.textContent = row.vei1;
+    tr.appendChild(td1);
+
+    const td2 = document.createElement('td');
+    td2.textContent = row.vei2;
+    tr.appendChild(td2);
+
+    if (r.diffRevealed) {
+      const tdD = document.createElement('td');
+      tdD.className = 'col-d';
+      const inp = document.createElement('input');
+      inp.className = 'diff-input';
+      inp.type = 'text';
+      inp.inputMode = 'numeric';
+      inp.value = row.forskjell !== null && row.forskjell !== undefined ? row.forskjell : '';
+      inp.addEventListener('change', () => {
+        const v = parseInput(inp.value);
+        if (Number.isNaN(v)) {
+          row.forskjell = null;
+        } else {
+          row.forskjell = v;
+          // gentle feedback
+          const correct = row.vei1 - row.vei2;
+          if (v !== correct) {
+            inp.style.borderColor = 'var(--warn)';
+            inp.title = 'Forskjellen er faktisk ' + correct;
+            setTimeout(() => { inp.style.borderColor = ''; }, 2200);
+          } else {
+            inp.style.borderColor = 'var(--ok)';
+            setTimeout(() => { inp.style.borderColor = ''; }, 1200);
+          }
+        }
+        saveState();
+      });
+      tdD.appendChild(inp);
+      tr.appendChild(tdD);
+    }
+
+    tbody.appendChild(tr);
+  });
+}
+
+function maybeShowHypothesis() {
+  const r = state.round1;
+  const block = document.getElementById('hypothesis-block');
+  if (r.table.length >= 5) {
+    block.classList.add('show');
+    document.getElementById('hypothesis-input').value = r.hypothesis || '';
+  } else {
+    block.classList.remove('show');
+  }
+}
+
+document.getElementById('hypothesis-input').addEventListener('input', (e) => {
+  state.round1.hypothesis = e.target.value;
+  saveState();
+});
+
+document.getElementById('btn-to-consolidate').addEventListener('click', () => {
+  showPhase('consolidate');
+});
+
+/* ------------------------------------------------------------------ */
+/*  INTRO → EXPLORE                                                    */
+/* ------------------------------------------------------------------ */
+
+document.getElementById('btn-to-explore').addEventListener('click', () => {
+  showPhase('explore');
+});
+
+/* ------------------------------------------------------------------ */
+/*  KONSOLIDERING — runde 2 prediksjon + start                         */
+/* ------------------------------------------------------------------ */
+
+document.getElementById('btn-round2-predict').addEventListener('click', () => {
+  const inp = document.getElementById('round2-predict');
+  const fb = document.getElementById('round2-feedback');
+  const guess = parseInput(inp.value);
+  if (Number.isNaN(guess)) {
+    fb.className = 'feedback show warn';
+    fb.textContent = 'Skriv inn et tall først.';
+    return;
+  }
+  state.round2.forskjellTipp = guess;
+  state.round2.forskjellTippLagret = true;
+  fb.className = 'feedback show ok';
+  fb.textContent = 'Lagret. Vi sjekker etterpå.';
+  saveState();
+});
+
+document.getElementById('btn-to-round2').addEventListener('click', () => {
+  showPhase('round2');
+});
+
+/* ------------------------------------------------------------------ */
+/*  RUNDE 2 — kortere versjon                                          */
+/* ------------------------------------------------------------------ */
+
+function renderRingMenu2() {
+  const menu = document.getElementById('ring-menu-2');
+  menu.innerHTML = '';
+  state.round2.rings.forEach(val => {
+    const btn = document.createElement('button');
+    btn.className = 'ring';
+    btn.dataset.value = val;
+    btn.textContent = val;
+    if (state.round2.triedRings.includes(val)) {
+      btn.classList.add('done');
+      btn.disabled = true;
+    }
+    if (state.round2.activeRing === val) btn.classList.add('active');
+    btn.addEventListener('click', () => selectRing2(val));
+    menu.appendChild(btn);
+  });
+}
+
+function selectRing2(val) {
+  if (state.round2.triedRings.includes(val)) return;
+  state.round2.activeRing = val;
+  state.round2.poeStep = 0;
+  state.round2.predictions[val] = {};
+  document.getElementById('workspace-2').style.display = 'grid';
+  document.getElementById('diagram-heading-2').textContent = 'Regn med startverdi ' + val;
+  renderRingMenu2();
+  renderDiagram2();
+  renderTable2();
+  saveState();
+}
+
+function renderDiagram2() {
+  const r = state.round2;
+  if (r.activeRing === null) return;
+  const start = r.activeRing;
+  const { add, mul } = r.params;
+  const step = r.poeStep;
+  const aRevealed = { step1: step >= 1, step2: step >= 2, step1Active: step === 0, step2Active: step === 1 };
+  const bRevealed = { step1: step >= 3, step2: step >= 4, step1Active: step === 2, step2Active: step === 3 };
+
+  const laneA = document.getElementById('lane-a-2');
+  const laneB = document.getElementById('lane-b-2');
+  laneA.innerHTML = '';
+  laneB.innerHTML = '';
+  laneA.appendChild(buildLaneRow(start, add, mul, 'a', aRevealed));
+  laneB.appendChild(buildLaneRow(start, add, mul, 'b', bRevealed));
+
+  const predictRow = document.getElementById('predict-row-2');
+  const predictInput = document.getElementById('predict-input-2');
+  const predictLabel = document.getElementById('predict-label-2');
+  const predictFeedback = document.getElementById('predict-feedback-2');
+  const ringDoneRow = document.getElementById('ring-done-row-2');
+
+  predictFeedback.classList.remove('show', 'ok', 'warn');
+  predictFeedback.textContent = '';
+
+  if (step <= 3) {
+    predictRow.style.display = 'flex';
+    predictInput.value = '';
+    predictInput.focus();
+    predictLabel.textContent = 'Hva tror du blir tallet i den aktive boksen?';
+    ringDoneRow.style.display = 'none';
+  } else if (step === 4) {
+    predictRow.style.display = 'flex';
+    predictInput.value = '';
+    predictInput.focus();
+    predictLabel.textContent = 'Hva blir endelig svar i Vei 1?';
+    ringDoneRow.style.display = 'none';
+  } else if (step === 5) {
+    predictRow.style.display = 'flex';
+    predictInput.value = '';
+    predictInput.focus();
+    predictLabel.textContent = 'Hva blir endelig svar i Vei 2?';
+    ringDoneRow.style.display = 'none';
+  } else {
+    predictRow.style.display = 'none';
+    ringDoneRow.style.display = 'flex';
+  }
+}
+
+document.getElementById('btn-predict-submit-2').addEventListener('click', () => handlePredict2());
+document.getElementById('predict-input-2').addEventListener('keydown', (e) => {
+  if (e.key === 'Enter') handlePredict2();
+});
+
+function handlePredict2() {
+  const r = state.round2;
+  const start = r.activeRing;
+  const { add, mul } = r.params;
+  const c = compute(start, add, mul);
+  const input = document.getElementById('predict-input-2');
+  const fb = document.getElementById('predict-feedback-2');
+  const guess = parseInput(input.value);
+  if (Number.isNaN(guess)) {
+    fb.className = 'feedback show warn';
+    fb.textContent = 'Skriv inn et tall først.';
+    return;
+  }
+
+  let truth;
+  if (r.poeStep === 0) truth = c.vei1_step1;
+  else if (r.poeStep === 1) truth = c.vei1;
+  else if (r.poeStep === 2) truth = c.vei2_step1;
+  else if (r.poeStep === 3) truth = c.vei2;
+  else if (r.poeStep === 4) truth = c.vei1;
+  else if (r.poeStep === 5) truth = c.vei2;
+
+  if (guess === truth) {
+    fb.className = 'feedback show ok';
+    fb.textContent = 'Riktig! ' + buildExplanation1(r.poeStep, start, add, mul);
+  } else {
+    fb.className = 'feedback show warn';
+    fb.textContent = 'Du tippet ' + fmt(guess) + '. Riktig svar er ' + fmt(truth) + '. ' + buildExplanation1(r.poeStep, start, add, mul);
+  }
+
+  setTimeout(() => {
+    r.poeStep += 1;
+    if (r.poeStep === 6) {
+      r.table.push({ start: start, vei1: c.vei1, vei2: c.vei2, forskjell: c.forskjell });
+      r.triedRings.push(start);
+      r.activeRing = null;
+      renderRingMenu2();
+      renderDiagram2();
+      renderTable2();
+      maybeShowRound2Next();
+      saveState();
+    } else {
+      renderDiagram2();
+      saveState();
+    }
+  }, 1100);
+}
+
+document.getElementById('btn-ring-done-2').addEventListener('click', () => {
+  state.round2.activeRing = null;
+  document.getElementById('workspace-2').style.display = 'none';
+  renderRingMenu2();
+  renderTable2();
+  maybeShowRound2Next();
+  saveState();
+});
+
+function renderTable2() {
+  const r = state.round2;
+  const tbody = document.getElementById('results-tbody-2');
+  tbody.innerHTML = '';
+  if (r.table.length === 0) {
+    const tr = document.createElement('tr');
+    const td = document.createElement('td');
+    td.colSpan = 4;
+    td.className = 'placeholder';
+    td.textContent = 'Ingen rader ennå.';
+    tr.appendChild(td);
+    tbody.appendChild(tr);
+    return;
+  }
+  r.table.forEach(row => {
+    const tr = document.createElement('tr');
+    [row.start, row.vei1, row.vei2].forEach((v, i) => {
+      const td = document.createElement('td');
+      td.textContent = v;
+      tr.appendChild(td);
+    });
+    const tdD = document.createElement('td');
+    tdD.className = 'col-d';
+    tdD.textContent = row.forskjell;
+    tr.appendChild(tdD);
+    tbody.appendChild(tr);
+  });
+}
+
+function maybeShowRound2Next() {
+  if (state.round2.table.length >= 2) {
+    document.getElementById('round2-next').style.display = 'flex';
+  }
+}
+
+document.getElementById('btn-to-pattern').addEventListener('click', () => {
+  showPhase('pattern');
+});
+
+document.getElementById('btn-back-to-explore').addEventListener('click', () => {
+  showPhase('round2');
+});
+
+document.getElementById('btn-to-sandbox').addEventListener('click', () => {
+  showPhase('sandbox');
+  renderSandbox();
+});
+
+/* ------------------------------------------------------------------ */
+/*  SANDBOX                                                            */
+/* ------------------------------------------------------------------ */
+
+function renderSandbox() {
+  const sb = state.sandbox;
+  document.getElementById('sb-add').value = String(sb.add);
+  document.getElementById('sb-mul').value = String(sb.mul);
+  renderSandboxRings();
+  document.getElementById('sb-workspace').style.display = sb.activeStart !== null ? 'block' : 'none';
+  if (sb.activeStart !== null) renderSandboxDiagram();
+  document.getElementById('sb-feedback').classList.remove('show', 'ok', 'warn');
+}
+
+function renderSandboxRings() {
+  const menu = document.getElementById('sb-rings');
+  menu.innerHTML = '';
+  [1, 2, 3, 5, 8].forEach(v => {
+    const btn = document.createElement('button');
+    btn.className = 'ring';
+    btn.textContent = v;
+    if (state.sandbox.activeStart === v) btn.classList.add('active');
+    btn.addEventListener('click', () => {
+      state.sandbox.activeStart = v;
+      document.getElementById('sb-workspace').style.display = 'block';
+      document.getElementById('sb-heading').textContent = 'Utregning med startverdi ' + v;
+      renderSandboxRings();
+      renderSandboxDiagram();
+      saveState();
+    });
+    menu.appendChild(btn);
+  });
+}
+
+function renderSandboxDiagram() {
+  const sb = state.sandbox;
+  const { add, mul, activeStart } = sb;
+  if (activeStart === null) return;
+  const c = compute(activeStart, add, mul);
+
+  const laneA = document.getElementById('sb-lane-a');
+  const laneB = document.getElementById('sb-lane-b');
+  laneA.innerHTML = '';
+  laneB.innerHTML = '';
+  laneA.appendChild(buildLaneRow(activeStart, add, mul, 'a', { step1: true, step2: true }));
+  laneB.appendChild(buildLaneRow(activeStart, add, mul, 'b', { step1: true, step2: true }));
+
+  const result = document.getElementById('sb-result');
+  result.innerHTML = 'Vei 1 = <strong>' + c.vei1 + '</strong>. Vei 2 = <strong>' + c.vei2 + '</strong>. Forskjell = <strong>' + c.forskjell + '</strong>.';
+}
+
+document.getElementById('sb-add').addEventListener('change', (e) => {
+  state.sandbox.add = parseInt(e.target.value, 10);
+  renderSandboxDiagram();
+  saveState();
+});
+document.getElementById('sb-mul').addEventListener('change', (e) => {
+  state.sandbox.mul = parseInt(e.target.value, 10);
+  renderSandboxDiagram();
+  saveState();
+});
+
+document.getElementById('btn-sb-check').addEventListener('click', () => {
+  const sb = state.sandbox;
+  const inp = document.getElementById('sb-predict');
+  const guess = parseInput(inp.value);
+  const fb = document.getElementById('sb-feedback');
+  if (Number.isNaN(guess)) {
+    fb.className = 'feedback show warn';
+    fb.textContent = 'Skriv inn et tall først.';
+    return;
+  }
+  const truth = sb.add * (sb.mul - 1);
+  if (guess === truth) {
+    fb.className = 'feedback show ok';
+    fb.textContent = 'Riktig! Forskjellen er ' + truth + '. ' + sb.add + ' · (' + sb.mul + ' − 1) = ' + truth + '.';
+  } else {
+    fb.className = 'feedback show warn';
+    fb.textContent = 'Du tippet ' + fmt(guess) + '. Forskjellen er ' + truth + '. Velg en startverdi og se utregningen for å sjekke.';
+  }
+});
+
+document.getElementById('btn-back-from-sandbox').addEventListener('click', () => {
+  showPhase('pattern');
+});
+
+document.getElementById('btn-to-formula').addEventListener('click', () => {
+  showPhase('formula');
+});
+
+document.getElementById('btn-back-from-formula').addEventListener('click', () => {
+  showPhase('sandbox');
+});
+
+document.getElementById('btn-restart').addEventListener('click', () => {
+  if (confirm('Er du sikker på at du vil starte på nytt? All fremgang slettes.')) {
+    state = cloneInitial();
+    saveState();
+    initRender();
+    showPhase('intro');
+  }
+});
+
+/* ------------------------------------------------------------------ */
+/*  INIT                                                               */
+/* ------------------------------------------------------------------ */
+
+function initRender() {
+  // Update parameter pills
+  document.getElementById('param-add').textContent = '+ ' + state.round1.params.add;
+  document.getElementById('param-mul').textContent = '× ' + state.round1.params.mul;
+  document.getElementById('param-add-2').textContent = '+ ' + state.round2.params.add;
+  document.getElementById('param-mul-2').textContent = '× ' + state.round2.params.mul;
+
+  renderRingMenu();
+  if (state.round1.activeRing !== null) {
+    document.getElementById('workspace').style.display = 'grid';
+    document.getElementById('diagram-heading').textContent = 'Regn med startverdi ' + state.round1.activeRing;
+    renderDiagram1();
+  }
+  renderTable1();
+  maybeShowHypothesis();
+
+  renderRingMenu2();
+  if (state.round2.activeRing !== null) {
+    document.getElementById('workspace-2').style.display = 'grid';
+    document.getElementById('diagram-heading-2').textContent = 'Regn med startverdi ' + state.round2.activeRing;
+    renderDiagram2();
+  }
+  renderTable2();
+  maybeShowRound2Next();
+
+  if (state.round2.forskjellTippLagret && state.round2.forskjellTipp !== null) {
+    const inp = document.getElementById('round2-predict');
+    if (inp) inp.value = state.round2.forskjellTipp;
+  }
+
+  renderSandbox();
+}
+
+initRender();
+showPhase(state.phase || 'intro');
+
+</script>
+</body>
+</html>
